@@ -36,12 +36,13 @@ Build and run each implementation to observe their behavior and performance.
 # Input Data
 The input data for the linear systems is read from the file "input.txt". Each set of equations is separated by a delimiter line "-----".
 
-# Contributing
+## Contributing
+
 If you'd like to contribute to this project, you can:
 
--Fork the repository
--Create a new branch (git checkout -b feature)
--Make your changes
--Commit your changes (git commit -am 'Add new feature')
--Push to the branch (git push origin feature)
--Create a pull request
+- Fork the repository
+- Create a new branch (`git checkout -b feature`)
+- Make your changes
+- Commit your changes (`git commit -am 'Add new feature'`)
+- Push to the branch (`git push origin feature`)
+- Create a pull request
