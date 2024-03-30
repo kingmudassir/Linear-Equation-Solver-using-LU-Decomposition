@@ -1,0 +1,158 @@
+using System;
+using System.IO;
+using System.Diagnostics;
+using System.Threading;
+
+class GFG
+{
+    static int MAX = 1000;
+    static string s = "";
+
+    static void luDecomposition(double[,] mat, int n)
+    {
+        // Create double arrays for lower and upper triangular matrices
+        double[,] lower = new double[n, n];
+        double[,] upper = new double[n, n];
+
+        // Perform LU decomposition
+        for (int i = 0; i < n; i++)
+        {
+            // Upper triangular matrix
+            for (int k = i; k < n; k++)
+            {
+                double sum = 0;
+                for (int j = 0; j < i; j++)
+                {
+                    sum += lower[i, j] * upper[j, k];
+                }
+                upper[i, k] = mat[i, k] - sum;
+            }
+
+            // Lower triangular matrix (including diagonal)
+            for (int k = i; k < n; k++)
+            {
+                if (i == k)
+                {
+                    lower[i, i] = 1; // Set diagonal element to 1
+                }
+                else
+                {
+                    double sum = 0;
+                    for (int j = 0; j < i; j++)
+                    {
+                        sum += lower[k, j] * upper[j, i];
+                    }
+                    lower[k, i] = (mat[k, i] - sum) / upper[i, i];
+                }
+            }
+        }
+
+        // Solve the equation LUx = b
+        double[] b = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        double[] y = new double[n];
+        double[] x = new double[n];
+
+        // Solve Ly = b (forward substitution)
+        for (int i = 0; i < n; i++)
+        {
+            double sum = 0;
+            // Iterate from 0 to i-1 (inclusive) to avoid accessing out-of-bounds elements
+            for (int j = 0; j <= i - 1; j++)
+            {
+                sum += lower[i, j] * y[j];
+            }
+            y[i] = (b[i] - sum) / lower[i, i]; // No need to check for i == i, diagonal is always 1
+        }
+
+        // Solve Ux = y (backward substitution)
+        for (int i = n - 1; i >= 0; i--)
+        {
+            double sum = 0;
+            // Iterate from i+1 to n-1 (inclusive) to avoid accessing out-of-bounds elements
+            for (int j = i + 1; j < n; j++)
+            {
+                sum += upper[i, j] * x[j];
+            }
+            x[i] = (y[i] - sum) / upper[i, i]; // No need to check for i == i, diagonal is always 1
+        }
+
+        // Displaying the resulting x values
+        Console.WriteLine("\nResulting x values:");
+        for (int i = 0; i < n; i++)
+        {
+            Console.WriteLine("x[" + i + "] = " + x[i]);
+        }
+        Thread.Sleep(2000); // Simulate some work
+    }
+
+    static String setw(int noOfSpace)
+    {
+        s = "";
+        for (int i = 0; i < noOfSpace; i++)
+            s += " ";
+        return s;
+    }
+
+    static double[,] ConvertToDoubleArray(int[,] array)
+    {
+        int rows = array.GetLength(0);
+        int cols = array.GetLength(1);
+        double[,] result = new double[rows, cols];
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                result[i, j] = (double)array[i, j];
+            }
+        }
+        return result;
+    }
+
+    public static void Main(String[] args)
+    {
+        // Read input from file
+        string[] lines = File.ReadAllLines("input.txt");
+
+        // Parse the input for multiple linear systems
+        int lineIndex = 0;
+
+        Stopwatch stopwatch = new Stopwatch();
+
+        while (lineIndex < lines.Length)
+        {
+            // Parse the size of the matrix
+            int n = int.Parse(lines[lineIndex++]);
+
+            // Parse the matrix
+            int[,] mat = new int[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                string[] rowValues = lines[lineIndex++].Split(' ');
+                for (int j = 0; j < n; j++)
+                {
+                    mat[i, j] = int.Parse(rowValues[j]);
+                }
+            }
+
+            // Create a thread to run luDecomposition
+            Thread luThread = new Thread(() =>
+            {
+                stopwatch.Start(); // Start the stopwatch
+                luDecomposition(ConvertToDoubleArray(mat), n); // Perform LU decomposition
+                stopwatch.Stop(); // Stop the stopwatch
+            });
+
+            // Start the thread
+            luThread.Start();
+
+            // Check if there is another set of equations
+            if (lineIndex < lines.Length && lines[lineIndex] == "-----")
+            {
+                // Skip the delimiter line
+                lineIndex++;
+            }
+        }
+        Console.WriteLine($"Execution Time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss\.fffff")}");
+        Console.ReadKey();
+    }
+}
